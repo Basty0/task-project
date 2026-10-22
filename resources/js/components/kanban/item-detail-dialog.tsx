@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Separator } from '@/components/ui/separator';
 import { type KanbanItem, type StagesMap } from '@/types/kanban';
 import { Link } from '@inertiajs/react';
-import { ListTodo, Pencil } from 'lucide-react';
+import { Check, Copy, ListTodo, Pencil } from 'lucide-react';
+import { useState } from 'react';
 
 interface ItemDetailDialogProps {
     open: boolean;
@@ -17,9 +18,17 @@ interface ItemDetailDialogProps {
 }
 
 export function ItemDetailDialog({ open, onOpenChange, item, stages, tasksHref, onEdit }: ItemDetailDialogProps) {
+    const [copied, setCopied] = useState(false);
+
     if (!item) {
         return null;
     }
+
+    const copyId = async () => {
+        await navigator.clipboard.writeText(String(item.id));
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1500);
+    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -28,6 +37,18 @@ export function ItemDetailDialog({ open, onOpenChange, item, stages, tasksHref, 
                     <div className="flex flex-wrap items-start justify-between gap-3 pr-6">
                         <DialogTitle className="text-xl leading-snug">{item.title}</DialogTitle>
                         <Badge variant="secondary">{stages[item.stage]}</Badge>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={copyId}
+                            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded-md border px-2 py-1 font-mono text-xs transition-colors"
+                            title="Copier l'identifiant"
+                        >
+                            #{item.id}
+                            {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}
+                            <span className="font-sans">{copied ? 'Copié' : 'Copier ID'}</span>
+                        </button>
                     </div>
                     <DialogDescription>Description au format Markdown.</DialogDescription>
                 </DialogHeader>

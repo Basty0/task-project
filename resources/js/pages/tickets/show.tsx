@@ -1,5 +1,6 @@
-import { KanbanBoard } from '@/components/kanban/kanban-board';
 import Heading from '@/components/heading';
+import { BoardRefreshControls } from '@/components/kanban/board-refresh-controls';
+import { KanbanBoard } from '@/components/kanban/kanban-board';
 import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -42,9 +43,12 @@ export default function TicketsShow({ ticket, tasksByStage, stages }: TicketsSho
                         Retour au dashboard
                     </Link>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                        <Heading title={ticket.title} description={ticket.description ?? 'Sous-tâches organisées par les mêmes étapes.'} />
-                        <Badge variant="secondary">{stages[ticket.stage]}</Badge>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Heading title={ticket.title} description={ticket.description ?? 'Sous-tâches organisées par les mêmes étapes.'} />
+                            <Badge variant="secondary">{stages[ticket.stage]}</Badge>
+                        </div>
+                        <BoardRefreshControls only={['ticket', 'tasksByStage', 'stages']} />
                     </div>
                 </div>
 

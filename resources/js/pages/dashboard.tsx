@@ -1,4 +1,5 @@
 import Heading from '@/components/heading';
+import { BoardRefreshControls } from '@/components/kanban/board-refresh-controls';
 import { KanbanBoard } from '@/components/kanban/kanban-board';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -22,10 +23,13 @@ export default function Dashboard({ ticketsByStage, stages }: DashboardProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <Heading
-                    title="Dashboard"
-                    description="Cliquez sur un ticket pour lire sa description Markdown. Glissez-le entre les étapes du parcours."
-                />
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <Heading
+                        title="Dashboard"
+                        description="Cliquez sur un ticket pour lire sa description Markdown. Glissez-le entre les étapes du parcours."
+                    />
+                    <BoardRefreshControls only={['ticketsByStage', 'stages']} />
+                </div>
 
                 <KanbanBoard
                     itemsByStage={ticketsByStage}

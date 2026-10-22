@@ -3,9 +3,11 @@ import { ItemFormDialog } from '@/components/kanban/item-form-dialog';
 import { KanbanColumn } from '@/components/kanban/kanban-column';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
     STAGE_ORDER,
     cloneItemsByStage,
+    emptyItemsByStage,
     type ItemsByStage,
     type KanbanItem,
     type StageKey,
@@ -24,7 +26,18 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { router } from '@inertiajs/react';
+import { Search, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+
+function itemMatchesQuery(item: KanbanItem, query: string): boolean {
+    if (query === '') {
+        return true;
+    }
+
+    const haystack = `${item.id} ${item.title} ${item.description ?? ''}`.toLowerCase();
+
+    return haystack.includes(query);
+}
 
 interface KanbanBoardProps {
     itemsByStage: ItemsByStage;
@@ -70,6 +83,7 @@ export function KanbanBoard({
     const [defaultStage, setDefaultStage] = useState<StageKey>('todo');
     const [processing, setProcessing] = useState(false);
     const [errors, setErrors] = useState<Partial<Record<'title' | 'description' | 'stage', string>>>({});
+    const [search, setSearch] = useState('');
 
     useEffect(() => {
         setBoard(cloneItemsByStage(itemsByStage));
@@ -79,6 +93,27 @@ export function KanbanBoard({
         useSensor(PointerSensor, {
             activationConstraint: { distance: 6 },
         }),
+    );
+
+    const normalizedSearch = search.trim().toLowerCase();
+
+    const visibleBoard = useMemo(() => {
+        if (normalizedSearch === '') {
+            return board;
+        }
+
+        const filtered = emptyItemsByStage();
+
+        for (const stage of STAGE_ORDER) {
+            filtered[stage] = (board[stage] ?? []).filter((item) => itemMatchesQuery(item, normalizedSearch));
+        }
+
+        return filtered;
+    }, [board, normalizedSearch]);
+
+    const visibleCount = useMemo(
+        () => STAGE_ORDER.reduce((total, stage) => total + (visibleBoard[stage]?.length ?? 0), 0),
+        [visibleBoard],
     );
 
     const flatItems = useMemo(() => STAGE_ORDER.flatMap((stage) => board[stage] ?? []), [board]);
@@ -253,6 +288,34 @@ export function KanbanBoard({
 
     return (
         <>
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="relative max-w-md flex-1">
+                    <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+                    <Input
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder="Rechercher par ID, titre ou description…"
+                        className="pr-9 pl-9"
+                        aria-label="Rechercher"
+                    />
+                    {search ? (
+                        <button
+                            type="button"
+                            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded p-1"
+                            onClick={() => setSearch('')}
+                            aria-label="Effacer la recherche"
+                        >
+                            <X className="size-4" />
+                        </button>
+                    ) : null}
+                </div>
+                {normalizedSearch ? (
+                    <p className="text-muted-foreground text-sm">
+                        {visibleCount} résultat{visibleCount > 1 ? 's' : ''}
+                    </p>
+                ) : null}
+            </div>
+
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCorners}
@@ -266,7 +329,7 @@ export function KanbanBoard({
                             key={stage}
                             stage={stage}
                             label={stages[stage]}
-                            items={board[stage] ?? []}
+                            items={visibleBoard[stage] ?? []}
                             onAdd={openCreate}
                             onOpen={openDetail}
                             onEdit={openEdit}
