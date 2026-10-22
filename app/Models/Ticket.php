@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Stage;
+use Database\Factories\TicketFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Ticket extends Model
 {
-    /** @use HasFactory<\Database\Factories\TicketFactory> */
+    /** @use HasFactory<TicketFactory> */
     use HasFactory;
 
     /**
@@ -48,6 +49,6 @@ class Ticket extends Model
      */
     public function tasks(): HasMany
     {
-        return $this->hasMany(Task::class)->orderBy('position');
+        return $this->hasMany(Task::class)->orderBy('position')->orderBy('id');
     }
 }

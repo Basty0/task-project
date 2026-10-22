@@ -5,15 +5,19 @@ namespace App\Enums;
 enum Stage: string
 {
     case Todo = 'todo';
+    case WaitingClarification = 'waiting_clarification';
     case InProgress = 'in_progress';
     case Done = 'done';
+    case Abandoned = 'abandoned';
 
     public function label(): string
     {
         return match ($this) {
             self::Todo => 'À faire',
+            self::WaitingClarification => 'En attente de précision',
             self::InProgress => 'En cours',
             self::Done => 'Terminé',
+            self::Abandoned => 'Abandonné',
         };
     }
 

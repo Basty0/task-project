@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\Stage;
 use App\Http\Requests\StoreTicketRequest;
 use App\Http\Requests\UpdateTicketRequest;
+use App\Models\Task;
 use App\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,9 +22,10 @@ class TicketController extends Controller
         $tickets = Ticket::query()
             ->where('user_id', auth()->id())
             ->orderBy('position')
+            ->orderBy('id')
             ->get();
 
-        return Inertia::render('tickets/index', [
+        return Inertia::render('dashboard', [
             'ticketsByStage' => $this->groupByStage($tickets),
             'stages' => Stage::labels(),
         ]);
@@ -43,14 +46,14 @@ class TicketController extends Controller
             'position' => is_null($position) ? 0 : $position + 1,
         ]);
 
-        return redirect()->route('tickets.index');
+        return redirect()->route('dashboard');
     }
 
     public function show(Ticket $ticket): Response
     {
         Gate::authorize('view', $ticket);
 
-        $ticket->load(['tasks' => fn ($query) => $query->orderBy('position')]);
+        $ticket->load(['tasks' => fn ($query) => $query->orderBy('position')->orderBy('id')]);
 
         return Inertia::render('tickets/show', [
             'ticket' => [
@@ -77,11 +80,11 @@ class TicketController extends Controller
 
         $ticket->delete();
 
-        return redirect()->route('tickets.index');
+        return redirect()->route('dashboard');
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, \App\Models\Ticket|\App\Models\Task>  $items
+     * @param  Collection<int, Ticket|Task>  $items
      * @return array<string, list<array<string, mixed>>>
      */
     private function groupByStage($items): array
